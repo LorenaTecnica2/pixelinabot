@@ -11,9 +11,10 @@ if not TOKEN:
 bot = telebot.TeleBot(TOKEN)
 
 # -------------------------------
-# ✅ Eliminar webhook si existe (para evitar error 409)
+# ⚠️ ELIMINAR WEBHOOK Y asegurar polling único
 bot.remove_webhook()
 print("✅ Webhook eliminado, listo para polling")
+print("✅ Asegurate de que no haya otra instancia de PixelinaBot corriendo")
 
 # -------------------------------
 # MENÚ PRINCIPAL
@@ -71,6 +72,8 @@ proyectos_msgs = [
 # SALUDOS AUTOMÁTICOS
 greetings = ["hola", "buen día", "buenos días", "buenas", "hey", "hi", "hello"]
 
+# -------------------------------
+# HANDLERS
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(
@@ -91,8 +94,6 @@ def saludo(message):
     ]
     bot.send_message(message.chat.id, random.choice(saludos_respuestas), reply_markup=main_menu())
 
-# -------------------------------
-# HANDLER GENERAL PARA MENSAJES
 @bot.message_handler(func=lambda m: True)
 def responder_mensajes(message):
     txt = message.text.lower()
