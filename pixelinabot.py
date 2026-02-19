@@ -90,10 +90,13 @@ def home():
     return "PixelinaBot está activo en Render 🚀"
 
 # --- ARRANQUE DEL SERVIDOR ---
-if __name__ == "__main__":
+render_url = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if render_url:
     bot.remove_webhook()
-    render_url = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
     webhook_url = f"https://{render_url}/{TOKEN}"
     bot.set_webhook(url=webhook_url)
+
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
