@@ -1,17 +1,17 @@
 import os
 import random
 import telebot
-from flask import Flask, request
 
+# -------------------------------
+# TOKEN desde variable de entorno
 TOKEN = os.environ.get("PIXELINA_TOKEN")
 if not TOKEN:
     raise ValueError("PIXELINA_TOKEN no definido en variables de entorno")
 
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
 
 # -------------------------------
-# MENÚ
+# MENÚ PRINCIPAL
 def main_menu():
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("📶 WiFi Escolar", "📚 Tareas")
@@ -22,39 +22,65 @@ def main_menu():
 
 # -------------------------------
 # RESPUESTAS
-wifi_msgs = ["¡No es tu compu! El WiFi del cole está tomando mate ☕",
-             "Red inestable… alguien desconectó los cables para jugar a la escondida 🕵️‍♂️",
-             "¡Ups! El WiFi se fue de recreo 🏃💨"]
+wifi_msgs = [
+    "¡No es tu compu! El WiFi del cole está tomando mate ☕",
+    "Red inestable… alguien desconectó los cables para jugar a la escondida 🕵️‍♂️",
+    "¡Ups! El WiFi se fue de recreo 🏃💨"
+]
 
-tareas_msgs = ["¿Tenés tareas pendientes? ¡A por ellas! 📘💪",
-               "Recordá anotar las tareas en la libreta digital 📓✨"]
+tareas_msgs = [
+    "¿Tenés tareas pendientes? ¡A por ellas! 📘💪",
+    "Recordá anotar las tareas en la libreta digital 📓✨"
+]
 
-profe_msgs = ["Está en la sala de profesores 📋, con cara de misterio 🤨",
-              "¡Fue al kiosco! 😄 Probá ir con monedas 🪙"]
+profe_msgs = [
+    "Está en la sala de profesores 📋, con cara de misterio 🤨",
+    "¡Fue al kiosco! 😄 Probá ir con monedas 🪙"
+]
 
-oraculo_msgs = ["Hoy aprenderás algo nuevo sobre IA 🤖",
-                "¡Tu código va a compilar sin errores! 💻",
-                "Un bug oculto aparecerá en tu proyecto 👻",
-                "Recibirás una gran idea para tu maqueta escolar 🧠",
-                "Alguien intentará hackear tu proyecto… ¡con amor! ❤️💾"]
+oraculo_msgs = [
+    "Hoy aprenderás algo nuevo sobre IA 🤖",
+    "¡Tu código va a compilar sin errores! 💻",
+    "Un bug oculto aparecerá en tu proyecto 👻",
+    "Recibirás una gran idea para tu maqueta escolar 🧠",
+    "Alguien intentará hackear tu proyecto… ¡con amor! ❤️💾"
+]
+
+novedades_msgs = [
+    "🆕 ¡Se viene un torneo de robótica! 🤖",
+    "🎉 Hoy hay feria de ciencias, no te lo pierdas!",
+    "📢 Recordá entregar tu trabajo de arte antes del viernes."
+]
+
+proyectos_msgs = [
+    "🚀 PixelinaBot: maquetas automatizadas, apps y más. ¡Sumate! 🤩",
+    "💡 Proyectos creativos: ¿tu idea será la próxima innovación?",
+    "🛠️ Taller de inventos: hoy es un buen día para experimentar."
+]
 
 # -------------------------------
-# SALUDOS
+# SALUDOS AUTOMÁTICOS
 greetings = ["hola", "buen día", "buenos días", "buenas", "hey", "hi", "hello"]
 
-# -------------------------------
-# HANDLERS
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id,
-                     "👋 ¡Hola! Soy *PixelinaBot*, tu asistente escolar 🤖.\n"
-                     "Elegí una opción del menú 👇",
-                     parse_mode="Markdown",
-                     reply_markup=main_menu())
+    bot.send_message(
+        message.chat.id,
+        "👋 ¡Hola! Soy *PixelinaBot*, tu asistente escolar 🤖.\n"
+        "Estoy lista para ayudarte con tareas, proyectos y dudas. Elegí una opción del menú 👇",
+        parse_mode="Markdown",
+        reply_markup=main_menu()
+    )
 
 @bot.message_handler(func=lambda m: any(greet in m.text.lower() for greet in greetings))
 def saludo(message):
-    bot.send_message(message.chat.id, "¡Hola! 👋 PixelinaBot está lista para ayudarte 😎", reply_markup=main_menu())
+    saludos_respuestas = [
+        "¡Hola! 👋 ¿Cómo andás?",
+        "¡Hey! Listo para aprender algo nuevo hoy? 🤓",
+        "¡Hola hola! PixelinaBot a tu servicio 🤖",
+        "¡Buen día! ☀️ ¿Qué hacemos hoy?"
+    ]
+    bot.send_message(message.chat.id, random.choice(saludos_respuestas), reply_markup=main_menu())
 
 @bot.message_handler(func=lambda m: True)
 def responder_mensajes(message):
@@ -75,37 +101,15 @@ def responder_mensajes(message):
     elif "calendario" in txt or "🗓" in txt:
         bot.send_message(message.chat.id, "📅 Próxima entrega: viernes 19/07")
     elif "novedades" in txt or "📣" in txt:
-        bot.send_message(message.chat.id, "🆕 ¡Se viene un torneo de robótica! 🤖")
+        bot.send_message(message.chat.id, random.choice(novedades_msgs))
     elif "proyectos" in txt or "💻" in txt:
-        bot.send_message(message.chat.id, "🚀 PixelinaBot: maquetas automatizadas, apps y más. ¡Sumate! 🤩")
+        bot.send_message(message.chat.id, random.choice(proyectos_msgs))
     elif any(x in txt for x in ["chau","adios","me voy","chao"]):
         bot.send_message(message.chat.id, "👋 ¡Hasta pronto! PixelinaBot estará por acá cuando me necesites.")
     else:
         bot.send_message(message.chat.id, "No entendí eso 🤖. Probá con el menú 👇", reply_markup=main_menu())
 
 # -------------------------------
-# FLASK WEBHOOK
-@app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
-    update = telebot.types.Update.de_json(request.get_data().decode("utf-8"))
-    bot.process_new_updates([update])
-    return "OK", 200
-
-@app.route("/")
-def home():
-    return "PixelinaBot está activo en Render 🚀"
-
-# -------------------------------
-# SETEAR WEBHOOK AUTOMÁTICAMENTE
-render_url = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if render_url:
-    bot.remove_webhook()
-    bot.set_webhook(url=f"https://{render_url}/{TOKEN}")
-    print("✅ Webhook seteado en:", f"https://{render_url}/{TOKEN}")
-else:
-    print("❌ No se encontró RENDER_EXTERNAL_HOSTNAME. Revisá variables de entorno.")
-
-# -------------------------------
-# CORRER FLASK
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+# ARRANQUE CON POLLING
+print("PixelinaBot corriendo con polling…")
+bot.infinity_polling()
