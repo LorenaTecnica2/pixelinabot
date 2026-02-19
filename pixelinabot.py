@@ -3,7 +3,7 @@ import random
 import telebot
 from flask import Flask, request
 
-TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TOKEN = os.environ.get("7905314930:AAHq1Xe_FIUmnEdhRLo0bwRJoa1Ka2DXDpM")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
@@ -98,5 +98,6 @@ if render_url:
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
