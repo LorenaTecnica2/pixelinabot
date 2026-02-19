@@ -77,7 +77,7 @@ def guardar_registro(archivo, datos):
         writer.writerow(datos)
 
 # -------------------------------
-# START
+# COMANDOS (ARRIBA DEL HANDLER GENERAL)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -87,11 +87,87 @@ def start(message):
         reply_markup=main_menu()
     )
 
+@bot.message_handler(commands=['responder'])
+def responder_usuario(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    try:
+        partes = message.text.split(" ", 2)
+
+        if len(partes) < 3:
+            bot.send_message(message.chat.id, "Formato correcto:\n/responder ID mensaje")
+            return
+
+        user_id = int(partes[1])
+        respuesta = partes[2]
+        fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        bot.send_message(user_id, f"📩 Respuesta del equipo:\n\n{respuesta}")
+        guardar_registro("respuestas.csv", [user_id, respuesta, fecha])
+
+        bot.send_message(message.chat.id, "✅ Respuesta enviada y guardada.")
+
+    except Exception as e:
+        bot.send_message(message.chat.id, f"Error: {e}")
+
+@bot.message_handler(commands=['ver'])
+def ver_csv(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    partes = message.text.split(" ")
+    if len(partes) < 2:
+        bot.send_message(message.chat.id, "Usá:\n/ver sugerencias\n/ver ayuda\n/ver proyectos\n/ver respuestas")
+        return
+
+    archivo = partes[1].lower() + ".csv"
+
+    if not os.path.exists(archivo):
+        bot.send_message(message.chat.id, "Ese archivo no existe.")
+        return
+
+    with open(archivo, "r", encoding="utf-8") as f:
+        lineas = f.readlines()
+
+    if len(lineas) <= 1:
+        bot.send_message(message.chat.id, "No hay registros todavía.")
+        return
+
+    ultimas = lineas[-10:]
+    texto = f"📂 Últimos registros de {archivo}:\n\n" + "".join(ultimas)
+
+    bot.send_message(message.chat.id, texto[:4000])
+
+@bot.message_handler(commands=['descargar'])
+def descargar_csv(message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    partes = message.text.split(" ")
+    if len(partes) < 2:
+        bot.send_message(message.chat.id, "Usá:\n/descargar sugerencias\n/descargar ayuda\n/descargar proyectos\n/descargar respuestas")
+        return
+
+    archivo = partes[1].lower() + ".csv"
+
+    if not os.path.exists(archivo):
+        bot.send_message(message.chat.id, "Ese archivo no existe.")
+        return
+
+    with open(archivo, "rb") as f:
+        bot.send_document(message.chat.id, f)
+
 # -------------------------------
-# HANDLER GENERAL
+# HANDLER GENERAL (AL FINAL)
 
 @bot.message_handler(func=lambda m: True)
 def responder_mensajes(message):
+
+    # 🚫 Ignorar comandos
+    if message.text.startswith("/"):
+        return
+
     txt = message.text.lower()
 
     if "wifi" in txt:
@@ -171,86 +247,6 @@ def guardar_proyecto(message):
     )
 
     bot.send_message(message.chat.id, "✅ Tu idea fue registrada.", reply_markup=main_menu())
-
-# -------------------------------
-# ADMIN RESPONDER Y GUARDAR
-
-@bot.message_handler(commands=['responder'])
-def responder_usuario(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    try:
-        partes = message.text.split(" ", 2)
-
-        if len(partes) < 3:
-            bot.send_message(message.chat.id, "Formato correcto:\n/responder ID mensaje")
-            return
-
-        user_id = int(partes[1])
-        respuesta = partes[2]
-        fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        bot.send_message(user_id, f"📩 Respuesta del equipo:\n\n{respuesta}")
-        guardar_registro("respuestas.csv", [user_id, respuesta, fecha])
-
-        bot.send_message(message.chat.id, "✅ Respuesta enviada y guardada.")
-
-    except Exception as e:
-        bot.send_message(message.chat.id, f"Error: {e}")
-
-# -------------------------------
-# VER ÚLTIMOS REGISTROS
-
-@bot.message_handler(commands=['ver'])
-def ver_csv(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    partes = message.text.split(" ")
-    if len(partes) < 2:
-        bot.send_message(message.chat.id, "Usá:\n/ver sugerencias\n/ver ayuda\n/ver proyectos\n/ver respuestas")
-        return
-
-    archivo = partes[1].lower() + ".csv"
-
-    if not os.path.exists(archivo):
-        bot.send_message(message.chat.id, "Ese archivo no existe.")
-        return
-
-    with open(archivo, "r", encoding="utf-8") as f:
-        lineas = f.readlines()
-
-    if len(lineas) <= 1:
-        bot.send_message(message.chat.id, "No hay registros todavía.")
-        return
-
-    ultimas = lineas[-10:]
-    texto = f"📂 Últimos registros de {archivo}:\n\n" + "".join(ultimas)
-
-    bot.send_message(message.chat.id, texto[:4000])
-
-# -------------------------------
-# DESCARGAR CSV
-
-@bot.message_handler(commands=['descargar'])
-def descargar_csv(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    partes = message.text.split(" ")
-    if len(partes) < 2:
-        bot.send_message(message.chat.id, "Usá:\n/descargar sugerencias\n/descargar ayuda\n/descargar proyectos\n/descargar respuestas")
-        return
-
-    archivo = partes[1].lower() + ".csv"
-
-    if not os.path.exists(archivo):
-        bot.send_message(message.chat.id, "Ese archivo no existe.")
-        return
-
-    with open(archivo, "rb") as f:
-        bot.send_document(message.chat.id, f)
 
 # -------------------------------
 # INICIAR BOT
