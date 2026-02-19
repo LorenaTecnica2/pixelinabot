@@ -22,16 +22,16 @@ print("✅ Bot iniciado en modo polling")
 # -------------------------------
 # TEXTOS
 
-wifi_info = "📶 Red: Pixelina\n🔑 Contraseña: pixelina123"
+wifi_info = "📶 Red: Estudiantes\n🔑 Contraseña: Escuelas_2025"
 
 tareas_msgs = [
-    "📚 Recordá entregar la tarea mañana.",
+    "📚 Hacelas! no dejes para último momento.",
     "📝 No olvides revisar Classroom."
 ]
 
 profe_msgs = [
-    "👩‍🏫 La profe responde en horario escolar.",
-    "📧 También podés escribirle por mail."
+    "👩‍🏫 Al profe lo encontras en su horario.",
+    "📧 Podés escribirle por mail."
 ]
 
 oraculo_msgs = [
@@ -40,14 +40,14 @@ oraculo_msgs = [
 ]
 
 novedades_msgs = [
-    "📣 Nueva actividad esta semana.",
-    "🎉 Se viene un evento especial."
+    "📣 Pronto tendremos más salones, el comedor y entornos formativos",
+
 ]
 
 proyectos_msgs = [
     "💻 App educativa",
     "🤖 Robot escolar",
-    "🌱 Proyecto ambiental"
+    "🌱 Cooperativa estudiantol Clementina 2.0"
 ]
 
 # -------------------------------
