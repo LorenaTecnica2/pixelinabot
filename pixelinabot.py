@@ -3,7 +3,7 @@ import random
 import telebot
 from flask import Flask, request
 
-TOKEN = os.environ.get("7905314930:AAHq1Xe_FIUmnEdhRLo0bwRJoa1Ka2DXDpM")
+TOKEN = os.environ.get("PIXELINA_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
@@ -88,7 +88,17 @@ def webhook():
 @app.route("/")
 def home():
     return "PixelinaBot está activo en Render 🚀"
-
+# -------------------------------
+# CONFIGURACIÓN DEL WEBHOOK
+# -------------------------------
+render_url = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if render_url:
+    bot.remove_webhook()
+    webhook_url = f"https://{render_url}/{TOKEN}"
+    bot.set_webhook(url=webhook_url)
+    print("Webhook seteado en:", webhook_url)
+else:
+    print("No se encontró RENDER_EXTERNAL_HOSTNAME. Revisá variables de entorno.")
 # --- ARRANQUE DEL SERVIDOR ---
 render_url = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if render_url:
@@ -98,6 +108,7 @@ if render_url:
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
 
 
 
