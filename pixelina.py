@@ -11,10 +11,9 @@ if not TOKEN:
 bot = telebot.TeleBot(TOKEN)
 
 # -------------------------------
-# ⚠️ ELIMINAR WEBHOOK Y asegurar polling único
+# ⚠️ Eliminar webhook antiguo para evitar conflictos 409
 bot.remove_webhook()
 print("✅ Webhook eliminado, listo para polling")
-print("✅ Asegurate de que no haya otra instancia de PixelinaBot corriendo")
 
 # -------------------------------
 # MENÚ PRINCIPAL
@@ -41,7 +40,8 @@ tareas_msgs = [
 
 profe_msgs = [
     "Está en la sala de profesores 📋, con cara de misterio 🤨",
-    "¡Fue al kiosco! 😄 Probá ir con monedas 🪙"
+    "¡Fue al kiosco! 😄 Probá ir con monedas 🪙",
+    "Lo vi en el laboratorio 👨‍🔬 con bata y goggles 🥼"
 ]
 
 oraculo_msgs = [
@@ -51,9 +51,11 @@ oraculo_msgs = [
     "Recibirás una gran idea para tu maqueta escolar 🧠",
     "Alguien intentará hackear tu proyecto… ¡con amor! ❤️💾",
     "Tu USB cobrará vida y bailará 🎵🖥️",
-    "El próximo PowerPoint será tan épico que merecerá Oscar 🏆",
+    "El próximo PowerPoint será tan épico que merecerá un Oscar 🏆",
     "Cuidado con los stickers en el chat… podrían rebelarse 🐱‍👤",
-    "Hoy es un buen día para encontrar la fórmula secreta del café ☕✨"
+    "Hoy es un buen día para encontrar la fórmula secreta del café ☕✨",
+    "Tu proyecto tendrá un aliado misterioso 😎",
+    "Un compañero te sorprenderá con un dato curioso 🧩"
 ]
 
 novedades_msgs = [
