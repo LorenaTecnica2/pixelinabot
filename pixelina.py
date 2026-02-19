@@ -11,6 +11,11 @@ if not TOKEN:
 bot = telebot.TeleBot(TOKEN)
 
 # -------------------------------
+# ✅ Eliminar webhook si existe (para evitar error 409)
+bot.remove_webhook()
+print("✅ Webhook eliminado, listo para polling")
+
+# -------------------------------
 # MENÚ PRINCIPAL
 def main_menu():
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -21,7 +26,7 @@ def main_menu():
     return markup
 
 # -------------------------------
-# RESPUESTAS
+# RESPUESTAS DIVERTIDAS
 wifi_msgs = [
     "¡No es tu compu! El WiFi del cole está tomando mate ☕",
     "Red inestable… alguien desconectó los cables para jugar a la escondida 🕵️‍♂️",
@@ -43,7 +48,11 @@ oraculo_msgs = [
     "¡Tu código va a compilar sin errores! 💻",
     "Un bug oculto aparecerá en tu proyecto 👻",
     "Recibirás una gran idea para tu maqueta escolar 🧠",
-    "Alguien intentará hackear tu proyecto… ¡con amor! ❤️💾"
+    "Alguien intentará hackear tu proyecto… ¡con amor! ❤️💾",
+    "Tu USB cobrará vida y bailará 🎵🖥️",
+    "El próximo PowerPoint será tan épico que merecerá Oscar 🏆",
+    "Cuidado con los stickers en el chat… podrían rebelarse 🐱‍👤",
+    "Hoy es un buen día para encontrar la fórmula secreta del café ☕✨"
 ]
 
 novedades_msgs = [
@@ -82,6 +91,8 @@ def saludo(message):
     ]
     bot.send_message(message.chat.id, random.choice(saludos_respuestas), reply_markup=main_menu())
 
+# -------------------------------
+# HANDLER GENERAL PARA MENSAJES
 @bot.message_handler(func=lambda m: True)
 def responder_mensajes(message):
     txt = message.text.lower()
