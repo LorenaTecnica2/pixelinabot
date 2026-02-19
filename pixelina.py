@@ -14,7 +14,7 @@ if not TOKEN:
 bot = telebot.TeleBot(TOKEN)
 
 # 🔐 PONÉ TU ID REAL ACÁ
-ADMIN_ID = 123456789
+ADMIN_ID = 1551887836
 
 bot.remove_webhook()
 print("✅ Bot iniciado en modo polling")
