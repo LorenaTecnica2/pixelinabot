@@ -5,7 +5,6 @@ from flask import Flask, request
 
 # -------------------------------
 # TOKEN seguro desde variable de entorno
-# Render → Settings → Environment Variables
 TOKEN = os.environ.get("PIXELINA_TOKEN")
 if not TOKEN:
     raise ValueError("❌ No se encontró PIXELINA_TOKEN en las variables de entorno de Render")
@@ -14,8 +13,7 @@ bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 # -------------------------------
-# MENÚ PRINCIPAL (sin modificar)
-# -------------------------------
+# MENÚ PRINCIPAL
 def main_menu():
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("📶 WiFi Escolar", "📚 Tareas")
@@ -25,8 +23,7 @@ def main_menu():
     return markup
 
 # -------------------------------
-# RESPUESTAS ALEATORIAS DIVERTIDAS
-# -------------------------------
+# RESPUESTAS DIVERTIDAS
 wifi_msgs = [
     "¡No es tu compu! El WiFi del cole está tomando mate ☕",
     "Red inestable… alguien desconectó los cables para jugar a la escondida 🕵️‍♂️",
@@ -75,7 +72,6 @@ proyectos_msgs = [
 
 # -------------------------------
 # HANDLER /start
-# -------------------------------
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(
@@ -88,11 +84,10 @@ def start(message):
     )
 
 # -------------------------------
-# RESPONDER SALUDOS AUTOMÁTICOS
-# -------------------------------
+# SALUDOS AUTOMÁTICOS
 greetings = ["hola", "buen día", "buenos días", "buenas", "hey", "hi", "hello"]
 
-@bot.message_handler(func=lambda m: m.text.lower() in greetings)
+@bot.message_handler(func=lambda m: any(greet in m.text.lower() for greet in greetings))
 def saludo(message):
     saludos_respuestas = [
         "¡Hola! 👋 ¿Cómo andás?",
@@ -104,10 +99,10 @@ def saludo(message):
 
 # -------------------------------
 # HANDLER DE MENSAJES (menú y demás)
-# -------------------------------
 @bot.message_handler(func=lambda m: True)
 def responder_mensajes(message):
     txt = message.text.lower()
+    print("Mensaje recibido:", txt)  # útil para depuración
 
     if txt in ["📶 wifi escolar", "wifi"]:
         bot.send_message(message.chat.id, random.choice(wifi_msgs))
@@ -136,7 +131,6 @@ def responder_mensajes(message):
 
 # -------------------------------
 # GUARDAR SUGERENCIAS Y CONSULTAS
-# -------------------------------
 def guardar_sugerencia(message):
     with open("sugerencias.txt", "a", encoding="utf-8") as f:
         f.write(f"{message.chat.id}: {message.text}\n")
@@ -149,7 +143,6 @@ def guardar_consulta(message):
 
 # -------------------------------
 # FLASK PARA WEBHOOK
-# -------------------------------
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     update = telebot.types.Update.de_json(request.get_data().decode("utf-8"))
@@ -161,8 +154,7 @@ def home():
     return "PixelinaBot está activo en Render 🚀"
 
 # -------------------------------
-# CONFIGURACIÓN DEL WEBHOOK
-# -------------------------------
+# SETEAR WEBHOOK AUTOMÁTICAMENTE
 render_url = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if render_url:
     bot.remove_webhook()
@@ -174,6 +166,5 @@ else:
 
 # -------------------------------
 # ARRANQUE DEL SERVIDOR
-# -------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
