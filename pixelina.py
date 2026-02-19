@@ -4,20 +4,35 @@ import csv
 import random
 from datetime import datetime
 from telebot.types import ReplyKeyboardMarkup
+from flask import Flask, request
 
 # -------------------------------
-# TOKEN DESDE RENDER
+# TOKEN (en Secrets de Replit)
+
 TOKEN = os.environ.get("PIXELINA_TOKEN")
 if not TOKEN:
-    raise ValueError("PIXELINA_TOKEN no definido")
+    raise ValueError("PIXELINA_TOKEN no definido en Secrets")
 
 bot = telebot.TeleBot(TOKEN)
+app = Flask(__name__)
 
-# 🔐 PONÉ TU ID REAL ACÁ
+# 🔐 TU ID
 ADMIN_ID = 1551887836
 
+# -------------------------------
+# CONFIG WEBHOOK PARA REPLIT
+
+REPL_URL = os.environ.get("REPLIT_DEV_DOMAIN")
+
+if not REPL_URL:
+    raise ValueError("REPLIT_DEV_DOMAIN no definido")
+
+WEBHOOK_URL = f"https://{REPL_URL}/{TOKEN}"
+
 bot.remove_webhook()
-print("✅ Bot iniciado en modo polling")
+bot.set_webhook(url=WEBHOOK_URL)
+
+print("✅ Webhook configurado en Replit")
 
 # -------------------------------
 # TEXTOS
@@ -25,12 +40,12 @@ print("✅ Bot iniciado en modo polling")
 wifi_info = "📶 Red: Estudiantes\n🔑 Contraseña: Escuelas_2025"
 
 tareas_msgs = [
-    "📚 Hacelas! no dejes para último momento.",
-    "📝 No olvides revisar Classroom."
+    "📚 ¡Hacelas! No dejes para último momento.",
+    "📝 Revisá Classroom."
 ]
 
 profe_msgs = [
-    "👩‍🏫 Al profe lo encontras en su horario.",
+    "👩‍🏫 Consultá su horario institucional.",
     "📧 Podés escribirle por mail."
 ]
 
@@ -39,31 +54,19 @@ oraculo_msgs = [
     "✨ Confía en tu intuición."
 ]
 
-novedades_msgs = [
-    "📣 Pronto tendremos más salones, el comedor y entornos formativos",
-
-]
-
-proyectos_msgs = [
-    "💻 App educativa",
-    "🤖 Robot escolar",
-    "🌱 Cooperativa estudiantol Clementina 2.0"
-]
-
 # -------------------------------
-# MENÚ PRINCIPAL
+# MENÚ
 
 def main_menu():
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("📶 Wifi", "📚 Tareas")
     markup.row("👩‍🏫 Profe", "🔮 Oráculo")
     markup.row("💡 Sugerencia", "🆘 Ayuda")
-    markup.row("🗓 Calendario", "📣 Novedades")
-    markup.row("💻 Proyectos")
+    markup.row("🏠 Inicio")
     return markup
 
 # -------------------------------
-# FUNCIÓN PARA GUARDAR CSV
+# GUARDAR CSV
 
 def guardar_registro(archivo, datos):
     existe = os.path.isfile(archivo)
@@ -72,100 +75,28 @@ def guardar_registro(archivo, datos):
         writer = csv.writer(f)
 
         if not existe:
-            writer.writerow(["usuario_id", "mensaje", "fecha"])
+            writer.writerow(["usuario", "mensaje", "fecha"])
 
         writer.writerow(datos)
 
 # -------------------------------
-# COMANDOS (ARRIBA DEL HANDLER GENERAL)
+# START
 
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(
         message.chat.id,
-        "👋 Hola, soy PixelinaBot 🤖\nElegí una opción del menú:",
+        "👋 Hola, soy PixelinaBot 🤖",
         reply_markup=main_menu()
     )
 
-@bot.message_handler(commands=['responder'])
-def responder_usuario(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    try:
-        partes = message.text.split(" ", 2)
-
-        if len(partes) < 3:
-            bot.send_message(message.chat.id, "Formato correcto:\n/responder ID mensaje")
-            return
-
-        user_id = int(partes[1])
-        respuesta = partes[2]
-        fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        bot.send_message(user_id, f"📩 Respuesta del equipo:\n\n{respuesta}")
-        guardar_registro("respuestas.csv", [user_id, respuesta, fecha])
-
-        bot.send_message(message.chat.id, "✅ Respuesta enviada y guardada.")
-
-    except Exception as e:
-        bot.send_message(message.chat.id, f"Error: {e}")
-
-@bot.message_handler(commands=['ver'])
-def ver_csv(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    partes = message.text.split(" ")
-    if len(partes) < 2:
-        bot.send_message(message.chat.id, "Usá:\n/ver sugerencias\n/ver ayuda\n/ver proyectos\n/ver respuestas")
-        return
-
-    archivo = partes[1].lower() + ".csv"
-
-    if not os.path.exists(archivo):
-        bot.send_message(message.chat.id, "Ese archivo no existe.")
-        return
-
-    with open(archivo, "r", encoding="utf-8") as f:
-        lineas = f.readlines()
-
-    if len(lineas) <= 1:
-        bot.send_message(message.chat.id, "No hay registros todavía.")
-        return
-
-    ultimas = lineas[-10:]
-    texto = f"📂 Últimos registros de {archivo}:\n\n" + "".join(ultimas)
-
-    bot.send_message(message.chat.id, texto[:4000])
-
-@bot.message_handler(commands=['descargar'])
-def descargar_csv(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    partes = message.text.split(" ")
-    if len(partes) < 2:
-        bot.send_message(message.chat.id, "Usá:\n/descargar sugerencias\n/descargar ayuda\n/descargar proyectos\n/descargar respuestas")
-        return
-
-    archivo = partes[1].lower() + ".csv"
-
-    if not os.path.exists(archivo):
-        bot.send_message(message.chat.id, "Ese archivo no existe.")
-        return
-
-    with open(archivo, "rb") as f:
-        bot.send_document(message.chat.id, f)
-
 # -------------------------------
-# HANDLER GENERAL (AL FINAL)
+# HANDLER GENERAL
 
 @bot.message_handler(func=lambda m: True)
-def responder_mensajes(message):
+def responder(message):
 
-    # 🚫 Ignorar comandos
-    if message.text.startswith("/"):
+    if not message.text:
         return
 
     txt = message.text.lower()
@@ -183,72 +114,58 @@ def responder_mensajes(message):
         bot.send_message(message.chat.id, random.choice(oraculo_msgs))
 
     elif "sugerencia" in txt:
-        msg = bot.send_message(message.chat.id, "✍️ Escribí tu sugerencia y la guardaré.")
+        msg = bot.send_message(message.chat.id, "✍️ Escribí tu sugerencia.")
         bot.register_next_step_handler(msg, guardar_sugerencia)
 
     elif "ayuda" in txt:
-        msg = bot.send_message(message.chat.id, "📨 Escribí tu consulta y alguien del equipo te responderá.")
+        msg = bot.send_message(message.chat.id, "📨 Escribí tu consulta.")
         bot.register_next_step_handler(msg, guardar_ayuda)
 
-    elif "calendario" in txt:
-        calendario_msg = (
-            "📅 Inicio de ciclo lectivo:\n"
-            "- Ingresantes: 2 de marzo\n"
-            "- Resto: 9 de marzo"
-        )
-        bot.send_message(message.chat.id, calendario_msg)
-
-    elif "novedades" in txt:
-        bot.send_message(message.chat.id, random.choice(novedades_msgs))
-
-    elif "proyectos" in txt:
-        bot.send_message(message.chat.id, "📌 Proyectos actuales:\n" + "\n".join(proyectos_msgs))
-        msg = bot.send_message(message.chat.id, "💡 Podés escribir tu idea y quedará registrada.")
-        bot.register_next_step_handler(msg, guardar_proyecto)
-
-    elif any(x in txt for x in ["chau","adios","me voy"]):
-        bot.send_message(message.chat.id, "👋 ¡Hasta pronto!", reply_markup=main_menu())
+    elif "inicio" in txt:
+        bot.send_message(message.chat.id, "Menú principal 👇", reply_markup=main_menu())
 
     else:
-        bot.send_message(message.chat.id, "No entendí eso 🤖. Probá con el menú 👇", reply_markup=main_menu())
+        bot.send_message(message.chat.id, "No entendí 🤖", reply_markup=main_menu())
 
 # -------------------------------
-# FUNCIONES DE GUARDADO
+# FUNCIONES
 
 def guardar_sugerencia(message):
     fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    guardar_registro("sugerencias.csv", [message.from_user.id, message.text, fecha])
+    usuario = message.from_user.first_name
+    guardar_registro("sugerencias.csv", [usuario, message.text, fecha])
 
     bot.send_message(
         ADMIN_ID,
-        f"📩 NUEVA SUGERENCIA\n\n👤 {message.from_user.id}\n📝 {message.text}\n📅 {fecha}"
+        f"📩 NUEVA SUGERENCIA\n\n👤 {usuario}\n📝 {message.text}\n📅 {fecha}"
     )
 
-    bot.send_message(message.chat.id, "✅ Gracias, tu sugerencia fue guardada.", reply_markup=main_menu())
+    bot.send_message(message.chat.id, "✅ Guardada.", reply_markup=main_menu())
 
 def guardar_ayuda(message):
     fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    guardar_registro("ayuda.csv", [message.from_user.id, message.text, fecha])
+    usuario = message.from_user.first_name
+    guardar_registro("ayuda.csv", [usuario, message.text, fecha])
 
     bot.send_message(
         ADMIN_ID,
-        f"🆘 NUEVA CONSULTA\n\n👤 {message.from_user.id}\n📝 {message.text}\n📅 {fecha}"
+        f"🆘 NUEVA CONSULTA\n\n👤 {usuario}\n📝 {message.text}\n📅 {fecha}"
     )
 
-    bot.send_message(message.chat.id, "✅ Tu consulta fue registrada.", reply_markup=main_menu())
-
-def guardar_proyecto(message):
-    fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    guardar_registro("proyectos.csv", [message.from_user.id, message.text, fecha])
-
-    bot.send_message(
-        ADMIN_ID,
-        f"💻 NUEVA IDEA\n\n👤 {message.from_user.id}\n📝 {message.text}\n📅 {fecha}"
-    )
-
-    bot.send_message(message.chat.id, "✅ Tu idea fue registrada.", reply_markup=main_menu())
+    bot.send_message(message.chat.id, "✅ Registrada.", reply_markup=main_menu())
 
 # -------------------------------
-# INICIAR BOT
+# WEBHOOK
 
-bot.infinity_polling()
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "OK", 200
+
+# -------------------------------
+# RUN
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
